@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Name — Portfolio</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'MS Sans Serif', Arial, sans-serif; font-size: 12px; overflow: hidden; cursor: none; }
+
+/* ── RAINBOW CURSOR ── */
+#cursor { position: fixed; width: 12px; height: 12px; pointer-events: none; z-index: 99999; transform: translate(-3px,-3px); }
+#cursor::before { content:''; display:block; width:6px; height:6px; background:#000; clip-path: polygon(0 0,100% 0,0 100%); }
+.trail-dot { position: fixed; width: 8px; height: 8px; border-radius: 50%; pointer-events: none; z-index: 99998; opacity: 1; transition: opacity 0.5s; }
+
+/* ── DESKTOP ── */
+.desktop { width: 100vw; height: 100vh; background: #008080; position: relative; overflow: hidden;
+  background-image: radial-gradient(ellipse at 25% 35%, #009a9a 0%, transparent 55%), radial-gradient(ellipse at 75% 65%, #006868 0%, transparent 50%); }
+
+/* ── ICONS ── */
+.icon-grid { display: flex; flex-direction: column; flex-wrap: wrap; gap: 10px; padding: 14px; max-height: calc(100vh - 40px); }
+.icon { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 72px; cursor: pointer; padding: 4px; border-radius: 1px; }
+.icon:hover .icon-label, .icon.selected .icon-label { background: #000080; color: white; outline: 1px dotted rgba(255,255,255,0.8); }
+.icon-img { font-size: 30px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; }
+.icon-label { font-size: 11px; color: white; text-align: center; text-shadow: 1px 1px 2px #000; line-height: 1.3; padding: 1px 3px; word-break: break-word; }
+
+/* ── WINDOWS ── */
+.window { position: absolute; background: #c0c0c0; min-width: 220px;
+  border-top: 2px solid #fff; border-left: 2px solid #fff;
+  border-bottom: 2px solid #808080; border-right: 2px solid #808080;
+  box-shadow: 2px 2px 0 #000; display: none; }
+.window.open { display: block; animation: winpop .13s ease-out; }
+@keyframes winpop { from { transform: scale(0.85) translateY(8px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+
+/* ── TITLE BAR ── */
+.title-bar { background: linear-gradient(to right, #000080, #1084d0); padding: 3px 4px; display: flex; align-items: center; gap: 4px; cursor: move; }
+.title-bar.inactive { background: #808080; }
+.title-bar-text { color: white; font-size: 12px; font-weight: bold; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-btn { width: 16px; height: 14px; background: #c0c0c0; border: none; cursor: pointer; font-size: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  border-top: 1px solid #fff; border-left: 1px solid #fff; border-bottom: 1px solid #808080; border-right: 1px solid #808080; }
+.tb-btn:active { border-top: 1px solid #808080; border-left: 1px solid #808080; border-bottom: 1px solid #fff; border-right: 1px solid #fff; }
+
+/* ── MENU BAR ── */
+.menu-bar { background: #c0c0c0; padding: 1px 2px; display: flex; gap: 0; border-bottom: 1px solid #808080; }
+.menu-item { padding: 2px 7px; cursor: pointer; font-size: 11px; }
+.menu-item:hover { background: #000080; color: white; }
+
+/* ── MISC ── */
+.inset { border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #fff; border-right: 2px solid #fff; }
+.raised { border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #808080; border-right: 2px solid #808080; }
+.win-btn { padding: 3px 12px; background: #c0c0c0; border: none; cursor: pointer; font-size: 11px; font-family: inherit;
+  border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #808080; border-right: 2px solid #808080; min-width: 70px; }
+.win-btn:active { border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #fff; border-right: 2px solid #fff; }
+.status-bar { display: flex; gap: 2px; padding: 2px 3px; border-top: 1px solid #808080; }
+.status-seg { border-top: 1px solid #808080; border-left: 1px solid #808080; border-bottom: 1px solid #fff; border-right: 1px solid #fff; padding: 1px 6px; font-size: 11px; }
+.folder-item { display: flex; align-items: center; gap: 6px; padding: 4px 6px; cursor: pointer; font-size: 12px; border-radius: 1px; }
+.folder-item:hover { background: #000080; color: white; }
+
+/* ── TASKBAR ── */
+.taskbar { position: fixed; bottom: 0; left: 0; right: 0; height: 32px; background: #c0c0c0; border-top: 2px solid #fff;
+  display: flex; align-items: center; gap: 2px; padding: 0 3px; z-index: 9000; }
+.start-btn { display: flex; align-items: center; gap: 5px; padding: 1px 8px; height: 24px;
+  background: #c0c0c0; border: none; cursor: pointer; font-weight: bold; font-size: 12px; font-family: inherit;
+  border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #808080; border-right: 2px solid #808080; }
+.start-btn:active { border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #fff; border-right: 2px solid #fff; }
+.win-flag { width: 16px; height: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; }
+.flag-q { border-radius: 1px; }
+.taskbar-btn { padding: 1px 8px; height: 22px; background: #b0b0b0; border: none; cursor: pointer; font-size: 11px; font-family: inherit;
+  max-width: 130px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #fff; border-right: 2px solid #fff; }
+.taskbar-btn:hover { background: #c8c8c8; }
+.taskbar-btn.active-win { background: #a8a8a8; }
+.taskbar-clock { margin-left: auto; padding: 1px 10px; font-size: 11px; flex-shrink: 0;
+  border-top: 1px solid #808080; border-left: 1px solid #808080; border-bottom: 1px solid #fff; border-right: 1px solid #fff; }
+
+/* ── START MENU ── */
+.start-menu { position: fixed; bottom: 32px; left: 0; width: 220px; background: #c0c0c0; display: none; z-index: 9999;
+  border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #808080; border-right: 2px solid #808080;
+  box-shadow: 2px 2px 0 #000; }
+.start-menu.open { display: flex; }
+.start-menu-sidebar { width: 28px; background: linear-gradient(to top, #000080, #808080); display: flex; align-items: flex-end; padding: 4px 0; flex-shrink: 0; }
+.start-menu-sidebar span { writing-mode: vertical-rl; transform: rotate(180deg); color: white; font-size: 14px; font-weight: bold; letter-spacing: 2px; padding-left: 4px; }
+.start-menu-items { flex: 1; padding: 4px 0; }
+.start-menu-item { display: flex; align-items: center; gap: 8px; padding: 5px 8px; cursor: pointer; font-size: 12px; }
+.start-menu-item:hover { background: #000080; color: white; }
+.start-menu-item .sm-icon { font-size: 18px; width: 22px; text-align: center; flex-shrink: 0; }
+.start-menu-divider { border-top: 1px solid #808080; border-bottom: 1px solid #fff; margin: 3px 0; }
+
+/* ── MINESWEEPER ── */
+.ms-face-btn { width: 26px; height: 26px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; background: #c0c0c0;
+  border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #808080; border-right: 2px solid #808080; }
+.ms-face-btn:active { border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #fff; border-right: 2px solid #fff; }
+.ms-display { background: #000; color: #f00; font-family: 'Courier New', monospace; font-size: 22px; font-weight: bold; padding: 2px 5px; min-width: 44px; text-align: right;
+  border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #fff; border-right: 2px solid #fff; }
+.ms-cell { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; font-weight: bold; flex-shrink: 0; background: #c0c0c0;
+  border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #808080; border-right: 2px solid #808080; }
+.ms-cell.revealed { border: 1px solid #808080; background: #c0c0c0; cursor: default; }
+.ms-cell.mine-hit { background: red; }
+.n1{color:#00f} .n2{color:#008000} .n3{color:#f00} .n4{color:#000080} .n5{color:#800000} .n6{color:#008080} .n7{color:#000} .n8{color:#808080}
+
+/* ── PAINT ── */
+.paint-toolbar { width: 36px; background: #c0c0c0; padding: 3px; display: flex; flex-direction: column; gap: 2px; border-right: 2px solid #808080; flex-shrink: 0; overflow-y: auto; }
+.paint-tool { width: 28px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; background: #c0c0c0;
+  border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #808080; border-right: 2px solid #808080; }
+.paint-tool.active { border-top: 2px solid #808080; border-left: 2px solid #808080; border-bottom: 2px solid #fff; border-right: 2px solid #fff; background: #b0b0b0; }
+.color-swatch { width: 13px; height: 13px; cursor: pointer; border: 1px solid #808080; flex-shrink: 0; }
+.color-swatch:hover { outline: 1px solid #000; }
+.paint-canvas-wrap { flex: 1; overflow: auto; background: #808080; padding: 4px; }
+
+/* ── BLOG ── */
+.blog-post { padding: 8px 10px; border-bottom: 1px solid #c0c0c0; cursor: pointer; }
+.blog-post:hover { background: #000080; color: white; }
+.blog-date { font-size: 10px; color: #666; }
+.blog-post:hover .blog-date { color: #adf; }
+
+/* ── BSOD ── */
+.bsod-screen { background: #000080; color: white; padding: 40px 50px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.7; min-height: 260px; }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<div class="desktop" id="desktop">
+  <div class="icon-grid" id="icon-grid">
+
+    <div class="icon" ondblclick="openWin('about')" onclick="selectIcon(this)">
+      <div class="icon-img">🧑‍💻</div><div class="icon-label">About Me</div>
+    </div>
+    <div class="icon" ondblclick="openWin('projects')" onclick="selectIcon(this)">
+      <div class="icon-img">📁</div><div class="icon-label">My Projects</div>
+    </div>
+    <div class="icon" ondblclick="openWin('skills')" onclick="selectIcon(this)">
+      <div class="icon-img">⚙️</div><div class="icon-label">Skills.exe</div>
+    </div>
+    <div class="icon" ondblclick="openWin('blog')" onclick="selectIcon(this)">
+      <div class="icon-img">✍️</div><div class="icon-label">Blog</div>
+    </div>
+    <div class="icon" ondblclick="openWin('contact')" onclick="selectIcon(this)">
+      <div class="icon-img">📧</div><div class="icon-label">Contact</div>
+    </div>
+    <div class="icon" ondblclick="openWin('resume')" onclick="selectIcon(this)">
+      <div class="icon-img">📄</div><div class="icon-label">Resume.doc</div>
+    </div>
+    <div class="icon" ondblclick="openWin('minesweeper')" onclick="selectIcon(this)">
+      <div class="icon-img">💣</div><div class="icon-label">Minesweeper</div>
+    </div>
+    <div class="icon" ondblclick="openWin('paint')" onclick="selectIcon(this)">
+      <div class="icon-img">🎨</div><div class="icon-label">MS Paint</div>
+    </div>
+    <div class="icon" ondblclick="openWin('recyclebin')" onclick="selectIcon(this)">
+      <div class="icon-img">🗑️</div><div class="icon-label">Recycle Bin</div>
+    </div>
+
+  </div>
+
+  <!-- ══ ABOUT ══ -->
+  <div class="window" id="win-about" style="top:30px;left:90px;width:340px;">
+    <div class="title-bar" onmousedown="startDrag(event,'win-about')" onclick="focusWin('about')">
+      <div class="title-bar-text">🧑‍💻 About Me</div>
+      <div style="display:flex;gap:2px;">
+        <button class="tb-btn" onclick="closeWin('about')">✕</button>
+      </div>
+    </div>
+    <div class="menu-bar"><div class="menu-item">File</div><div class="menu-item">Edit</div><div class="menu-item">Help</div></div>
+    <div style="padding:12px;font-size:12px;line-height:1.8;">
+      <!-- ✏️ EDIT: Replace with your bio -->
+      <p style="margin-bottom:8px;">👋 Hi! I'm <strong>Your Name</strong>.</p>
+      <p style="margin-bottom:8px;">Your tagline or one-liner goes here.</p>
+      <p style="margin-bottom:8px;">A bit more about yourself — what you do, what you care about, what you're working on.</p>
+      <p>Currently based in 📍 Your City.</p>
+    </div>
+    <div class="status-bar"><div class="status-seg">Ready</div></div>
+  </div>
+
+  <!-- ══ PROJECTS ══ -->
+  <div class="window" id="win-projects" style="top:50px;left:110px;width:380px;">
+    <div class="title-bar" onmousedown="startDrag(event,'win-projects')" onclick="focusWin('projects')">
+      <div class="title-bar-text">📁 My Projects</div>
+      <div style="display:flex;gap:2px;">
+        <button class="tb-btn" onclick="closeWin('projects')">✕</button>
+      </div>
+    </div>
+    <div class="menu-bar"><div class="menu-item">File</div><div class="menu-item">View</div><div class="menu-item">Help</div></div>
+    <div style="padding:6px;" id="projects-list">
+      <!-- ✏️ EDIT: Replace with your projects. Each row = one project. -->
+      <div class="folder-item" onclick="openProject('https://github.com')">📁 Project One — A short description of what it does</div>
+      <div class="folder-item" onclick="openProject('https://github.com')">📁 Project Two — A short description of what it does</div>
+      <div class="folder-item" onclick="openProject('https://github.com')">📁 Project Three — A short description of what it does</div>
+      <div class="folder-item" onclick="openProject('https://github.com')">📁 Side Project — A fun thing you built</div>
+      <div class="folder-item" onclick="openProject('https://github.com')">📁 Another Thing — One-liner about it</div>
+    </div>
+    <div class="status-bar"><div class="status-seg" id="proj-count">5 object(s)</div><div class="status-seg">Double-click to open</div></div>
+  </div>
+
+  <!-- ══ SKILLS ══ -->
+  <div class="window" id="win-skills" style="top:60px;left:100px;width:280px;">
+    <div class="title-bar" onmousedown="startDrag(event,'win-skills')" onclick="focusWin('skills')">
+      <div class="title-bar-text">⚙️ Skills.exe — System Properties</div>
+      <div style="display:flex;gap:2px;">
+        <button class="tb-btn" onclick="closeWin('skills')">✕</button>
+      </div>
+    </div>
+    <div style="padding:10px;font-size:12px;">
+      <!-- ✏️ EDIT: Replace with your skills, grouped however you like -->
+      <div style="margin-bottom:10px;">
+        <div style="font-weight:bold;margin-bottom:4px;border-bottom:1px solid #808080;padding-bottom:2px;">Languages</div>
+        <div style="line-height:2;">▶ JavaScript &nbsp; ▶ TypeScript &nbsp; ▶ Python</div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div style="font-weight:bold;margin-bottom:4px;border-bottom:1px solid #808080;padding-bottom:2px;">Frameworks</div>
+        <div style="line-height:2;">▶ React &nbsp; ▶ Next.js &nbsp; ▶ Node.js</div>
+      </div>
+      <div>
+        <div style="font-weight:bold;margin-bottom:4px;border-bottom:1px solid #808080;padding-bottom:2px;">Tools</div>
+        <div style="line-height:2;">▶ Git &nbsp; ▶ Docker &nbsp; ▶ PostgreSQL</div>
+      </div>
+    </div>
+    <div class="status-bar"><div class="status-seg">System Ready</div></div>
+  </div>
+
+  <!-- ══ BLOG ══ -->
+  <div class="window" id="win-blog" style="top:55px;left:105px;width:360px;">
+    <div class="title-bar" onmousedown="startDrag(event,'win-blog')" onclick="focusWin('blog')">
+      <div class="title-bar-text">✍️ Blog — My Writing</div>
+      <div style="display:flex;gap:2px;">
+        <button class="tb-btn" onclick="closeWin('blog')">✕</button>
+      </div>
+    </div>
+    <div class="menu-bar"><div class="menu-item">File</div><div class="menu-item">View</div><div class="menu-item">Help</div></div>
+    <div style="max-height:220px;overflow-y:auto;">
+      <!-- ✏️ EDIT: Replace with your posts and links -->
+      <div class="blog-post" onclick="openProject('https://yourlink.com')">
+        <div style="font-weight:bold;">Post Title Goes Here</div>
+        <div class="blog-date">January 2025</div>
+        <div style="margin-top:2px;">A short summary of what the post is about.</div>
+      </div>
+      <div class="blog-post" onclick="openProject('https://yourlink.com')">
+        <div style="font-weight:bold;">Another Interesting Post</div>
+        <div class="blog-date">November 2024</div>
+        <div style="margin-top:2px;">Short summary goes here.</div>
+      </div>
+      <div class="blog-post" onclick="openProject('https://yourlink.com')">
+        <div style="font-weight:bold;">A Third Post</div>
+        <div class="blog-date">August 2024</div>
+        <div style="margin-top:2px;">Short summary goes here.</div>
+      </div>
+    </div>
+    <div class="status-bar"><div class="status-seg">3 post(s)</div></div>
+  </div>
+
+  <!-- ══ CONTACT ══ -->
+  <div class="window" id="win-contact" style="top:65px;left:115px;width:280px;">
+    <div class="title-bar" onmousedown="startDrag(event,'win-contact')" onclick="focusWin('contact')">
+      <div class="title-bar-text">📧 Contact</div>
+      <div style="display:flex;gap:2px;">
+        <button class="tb-btn" onclick="closeWin('contact')">✕</button>
+      </div>
+    </div>
+    <div style="padding:12px;font-size:12px;line-height:2.2;">
+      <!-- ✏️ EDIT: Replace with your links -->
+      <div>📧 <a href="mailto:hello@yourname.dev" style="color:#000;">hello@yourname.dev</a></div>
+      <div>🐙 <a href="https://github.com/yourname" target="_blank" style="color:#000;">github.com/yourname</a></div>
+      <div>💼 <a href="https://linkedin.com/in/yourname" target="_blank" style="color:#000;">linkedin.com/in/yourname</a></div>
+      <div>🐦 <a href="https://twitter.com/yourhandle" target="_blank" style="color:#000;">@yourhandle</a></div>
+    </div>
+    <div style="padding:0 12px 12px;text-align:center;">
+      <button class="win-btn" onclick="window.location.href='mailto:hello@yourname.dev'">Send Email ✉️</button>
+    </div>
+  </div>
+
+  <!-- ══ RESUME ══ -->
+  <div class="window" id="win-resume" style="top:45px;left:100px;width:260px;">
+    <div class="title-bar" onmousedown="startDrag(event,'win-resume')" onclick="focusWin('resume')">
+      <div class="title-bar-text">📄 Resume.doc</div>
+      <div style="display:flex;gap:2px;">
+        <button class="tb-btn" onclick="closeWin('resume')">✕</button>
+      </div>
+    </div>
+    <div style="padding:24px 12px;font-size:12px;text-align:center;">
+      <div style="font-size:44px;margin-bottom:10px;">📄</div>
+      <div style="font-weight:bold;font-size:13px;">Resume.doc</div>
+      <div style="color:#666;margin:4px 0 14px;">Microsoft Word Document<br><!-- ✏️ EDIT: Update year -->Last modified: 2025</div>
+      <div style="display:flex;gap:6px;justify-content:center;">
+        <!-- ✏️ EDIT: Point these to your hosted resume PDF -->
+        <button class="win-btn" onclick="openProject('#')">Open</button>
+        <button class="win-btn" onclick="openProject('#')">Download ⬇️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MINESWEEPER ══ -->
+  <div class="window" id="win-minesweeper" style="top:50px;left:120px;">
+    <div class="title-bar" onmousedown="startDrag(event,'win-minesweeper')" onclick="focusWin('minesweeper')">
+      <div class="title-bar-text">💣 Minesweeper</div>
+      <div style="display:flex;gap:2px;">
+        <button class="tb-btn" onclick="closeWin('minesweeper')">✕</button>
+      </div>
+    </div>
+    <div class="menu-bar">
+      <div class="menu-item" onclick="initMine()">Game</div>
+      <div class="menu-item" onclick="setDifficulty('easy')">Easy</div>
+      <div class="menu-item" onclick="setDifficulty('medium')">Medium</div>
+      <div class="menu-item" onclick="setDifficulty('hard')">Hard</div>
+    </div>
+    <div style="padding:6px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding:4px;" class="inset">
+        <div class="ms-display" id="ms-mines">010</div>
+        <div class="ms-face-btn" id="ms-face" onclick="initMine()">🙂</div>
+        <div class="ms-display" id="ms-time">000</div>
+      </div>
+      <div class="inset" style="padding:2px;display:inline-block;">
+        <div id="ms-board" style="display:grid;gap:0;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MS PAINT ══ -->
+  <div class="window" id="win-paint" style="top:35px;left:85px;width:520px;">
+    <div class="title-bar" onmousedown="startDrag(event,'win-paint')" onclick="focusWin('paint')">
+      <div class="title-bar-text">🎨 Paint — untitled.bmp</div>
+      <div style="display:flex;gap:2px;">
+        <button class="tb-btn" onclick="closeWin('paint')">✕</button>
+      </div>
+    </div>
+    <div class="menu-bar">
+      <div class="menu-item" onclick="clearCanvas()">New</div>
+      <div class="menu-item" onclick="saveCanvas()">Save</div>
+      <div class="menu-item">Edit</div>
+      <div class="menu-item">Image</div>
+      <div class="menu-item">Colors</div>
+      <div class="menu-item">Help</div>
+    </div>
+    <div style="display:flex;height:360px;">
+      <div class="paint-toolbar" id="paint-tools">
+        <div class="paint-tool active" id="tool-pencil" onclick="setTool('pencil')" title="Pencil">✏️</div>
+        <div class="paint-tool" id="tool-brush" onclick="setTool('brush')" title="Brush">🖌️</div>
+        <div class="paint-tool" id="tool-eraser" onclick="setTool('eraser')" title="Eraser">⬜</div>
+        <div class="paint-tool" id="tool-fill" onclick="setTool('fill')" title="Fill">🪣</div>
+        <div class="paint-tool" id="tool-line" onclick="setTool('line')" title="Line">╱</div>
+        <div class="paint-tool" id="tool-rect" onclick="setTool('rect')" title="Rect">▭</div>
+        <div class="paint-tool" id="tool-circle" onclick="setTool('circle')" title="Circle">○</div>
+        <div style="margin-top:6px;border-top:1px solid #808080;padding-top:6px;">
+          <div style="font-size:9px;color:#444;margin-bottom:3px;text-align:center;">Color</div>
+          <div style="width:24px;height:24px;border:2px solid #000;margin:0 auto 6px;" id="paint-color-preview"></div>
+          <div style="display:flex;flex-wrap:wrap;gap:2px;width:30px;" id="paint-palette"></div>
+        </div>
+        <div style="margin-top:6px;border-top:1px solid #808080;padding-top:4px;">
+          <div style="font-size:9px;color:#444;margin-bottom:2px;text-align:center;">Size</div>
+          <input type="range" min="1" max="20" value="2" id="brush-size" style="width:28px;writing-mode:vertical-lr;direction:rtl;height:60px;">
+        </div>
+      </div>
+      <div class="paint-canvas-wrap">
+        <canvas id="paint-canvas" width="420" height="300" style="background:white;display:block;cursor:crosshair;"></canvas>
+      </div>
+    </div>
+    <div class="status-bar">
+      <div class="status-seg" id="paint-status">Pencil</div>
+      <div class="status-seg" id="paint-coords">0, 0</div>
+      <div class="status-seg" id="paint-size">Size: 2</div>
+    </div>
+  </div>
+
+  <!-- ══ RECYCLE BIN (easter egg) ══ -->
+  <div class="window" id="win-recyclebin" style="top:60px;left:110px;width:340px;">
+    <div class="title-bar" onmousedown="startDrag(event,'win-recyclebin')" onclick="focusWin('recyclebin')">
+      <div class="title-bar-text">🗑️ Recycle Bin</div>
+      <div style="display:flex;gap:2px;">
+        <button class="tb-btn" onclick="closeWin('recyclebin')">✕</button>
+      </div>
+    </div>
+    <div class="menu-bar"><div class="menu-item">File</div><div class="menu-item">Edit</div><div class="menu-item">View</div></div>
+    <div style="padding:12px;font-size:12px;line-height:1.9;">
+      <!-- ✏️ EDIT: Put your funny deleted items here -->
+      <div class="folder-item">🗂️ my_first_website_v47_FINAL.html</div>
+      <div class="folder-item">🗂️ todo_list_will_actually_do_this_time.txt</div>
+      <div class="folder-item">🗂️ definitely_not_a_bug.js</div>
+      <div class="folder-item">🗂️ design_that_took_3_weeks_lol.psd</div>
+      <div class="folder-item">🗂️ README_i_swear_ill_write_this.md</div>
+    </div>
+    <div class="status-bar"><div class="status-seg">5 object(s)</div><div class="status-seg">Contains 99% of my career</div></div>
+  </div>
+
+  <!-- ══ START MENU ══ -->
+  <div class="start-menu" id="start-menu">
+    <div class="start-menu-sidebar"><span>Windows 98</span></div>
+    <div class="start-menu-items">
+      <div class="start-menu-item" onclick="openWin('about');toggleStart()"><span class="sm-icon">🧑‍💻</span>About Me</div>
+      <div class="start-menu-item" onclick="openWin('projects');toggleStart()"><span class="sm-icon">📁</span>My Projects</div>
+      <div class="start-menu-item" onclick="openWin('skills');toggleStart()"><span class="sm-icon">⚙️</span>Skills</div>
+      <div class="start-menu-item" onclick="openWin('blog');toggleStart()"><span class="sm-icon">✍️</span>Blog</div>
+      <div class="start-menu-item" onclick="openWin('contact');toggleStart()"><span class="sm-icon">📧</span>Contact</div>
+      <div class="start-menu-item" onclick="openWin('resume');toggleStart()"><span class="sm-icon">📄</span>Resume</div>
+      <div class="start-menu-divider"></div>
+      <div class="start-menu-item" onclick="openWin('minesweeper');toggleStart()"><span class="sm-icon">💣</span>Minesweeper</div>
+      <div class="start-menu-item" onclick="openWin('paint');toggleStart()"><span class="sm-icon">🎨</span>MS Paint</div>
+      <div class="start-menu-divider"></div>
+      <div class="start-menu-item" onclick="openWin('recyclebin');toggleStart()"><span class="sm-icon">🗑️</span>Recycle Bin</div>
+      <div class="start-menu-divider"></div>
+      <div class="start-menu-item" onclick="toggleStart()"><span class="sm-icon">🔌</span>Shut Down...</div>
+    </div>
+  </div>
+
+  <!-- ══ TASKBAR ══ -->
+  <div class="taskbar">
+    <button class="start-btn" onclick="toggleStart()">
+      <div class="win-flag">
+        <div class="flag-q" style="background:#f00;"></div><div class="flag-q" style="background:#0a0;"></div>
+        <div class="flag-q" style="background:#00a;"></div><div class="flag-q" style="background:#fa0;"></div>
+      </div>
+      Start
+    </button>
+    <div id="taskbar-btns" style="display:flex;gap:2px;flex-wrap:nowrap;overflow:hidden;"></div>
+    <div class="taskbar-clock" id="clock">12:00 PM</div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// RAINBOW CURSOR TRAIL
+// ══════════════════════════════════════════
+const cursor = document.getElementById('cursor');
+const trails = [];
+const MAX_TRAIL = 20;
+const COLORS = ['#ff0000','#ff6600','#ffcc00','#00cc00','#0099ff','#6633ff','#cc00ff','#ff0099'];
+let trailIdx = 0;
+
+for (let i = 0; i < MAX_TRAIL; i++) {
+  const dot = document.createElement('div');
+  dot.className = 'trail-dot';
+  dot.style.background = COLORS[i % COLORS.length];
+  dot.style.display = 'none';
+  document.body.appendChild(dot);
+  trails.push({ el: dot, x: 0, y: 0, life: 0 });
+}
+
+let mouseX = 0, mouseY = 0;
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  cursor.style.left = mouseX + 'px';
+  cursor.style.top = mouseY + 'px';
+
+  const t = trails[trailIdx % MAX_TRAIL];
+  t.x = mouseX; t.y = mouseY; t.life = 1;
+  t.el.style.left = (mouseX - 4) + 'px';
+  t.el.style.top = (mouseY - 4) + 'px';
+  t.el.style.background = COLORS[trailIdx % COLORS.length];
+  t.el.style.display = 'block';
+  t.el.style.opacity = '1';
+  trailIdx++;
+});
+
+setInterval(() => {
+  trails.forEach(t => {
+    if (t.life > 0) {
+      t.life -= 0.06;
+      t.el.style.opacity = Math.max(0, t.life);
+      const s = 4 + (1 - t.life) * 6;
+      t.el.style.width = s + 'px';
+      t.el.style.height = s + 'px';
+      if (t.life <= 0) t.el.style.display = 'none';
+    }
+  });
+}, 30);
+
+// ══════════════════════════════════════════
+// WINDOW MANAGEMENT
+// ══════════════════════════════════════════
+let zTop = 10;
+const openWindows = new Map();
+
+const WIN_LABELS = {
+  about: '🧑‍💻 About Me', projects: '📁 Projects', skills: '⚙️ Skills',
+  blog: '✍️ Blog', contact: '📧 Contact', resume: '📄 Resume',
+  minesweeper: '💣 Minesweeper', paint: '🎨 MS Paint', recyclebin: '🗑️ Recycle Bin'
+};
+
+function openWin(id) {
+  const w = document.getElementById('win-' + id);
+  if (!w) return;
+  w.classList.add('open');
+  w.style.zIndex = ++zTop;
+  openWindows.set(id, true);
+  updateTaskbar();
+  if (id === 'minesweeper' && !mineInit) initMine();
+  if (id === 'paint' && !paintInit) initPaint();
+  activateTitleBar(id);
+}
+
+function closeWin(id) {
+  const w = document.getElementById('win-' + id);
+  if (w) w.classList.remove('open');
+  openWindows.delete(id);
+  updateTaskbar();
+}
+
+function focusWin(id) {
+  const w = document.getElementById('win-' + id);
+  if (!w || !w.classList.contains('open')) return;
+  w.style.zIndex = ++zTop;
+  activateTitleBar(id);
+}
+
+function activateTitleBar(activeId) {
+  document.querySelectorAll('.title-bar').forEach(tb => tb.classList.add('inactive'));
+  const aw = document.getElementById('win-' + activeId);
+  if (aw) { const tb = aw.querySelector('.title-bar'); if (tb) tb.classList.remove('inactive'); }
+}
+
+function updateTaskbar() {
+  const c = document.getElementById('taskbar-btns');
+  c.innerHTML = '';
+  openWindows.forEach((_, id) => {
+    const b = document.createElement('button');
+    b.className = 'taskbar-btn';
+    b.textContent = WIN_LABELS[id] || id;
+    b.onclick = () => focusWin(id);
+    c.appendChild(b);
+  });
+}
+
+function selectIcon(el) {
+  document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function openProject(url) {
+  if (url && url !== '#') window.open(url, '_blank');
+}
+
+// ── CLOCK ──
+function tick() {
+  const n = new Date(); let h = n.getHours(), m = n.getMinutes();
+  const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
+  document.getElementById('clock').textContent = h + ':' + String(m).padStart(2,'0') + ' ' + ap;
+}
+tick(); setInterval(tick, 10000);
+
+// ── START MENU ──
+let startOpen = false;
+function toggleStart() {
+  startOpen = !startOpen;
+  document.getElementById('start-menu').classList.toggle('open', startOpen);
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.start-menu') && !e.target.closest('.start-btn')) {
+    startOpen = false; document.getElementById('start-menu').classList.remove('open');
+  }
+});
+
+// ── DRAG ──
+let dragging = null, dragOffX = 0, dragOffY = 0;
+function startDrag(e, id) {
+  if (e.target.classList.contains('tb-btn')) return;
+  dragging = document.getElementById(id);
+  dragging.style.zIndex = ++zTop;
+  activateTitleBar(id);
+  const dr = document.getElementById('desktop').getBoundingClientRect();
+  const r = dragging.getBoundingClientRect();
+  dragOffX = e.clientX - (r.left - dr.left);
+  dragOffY = e.clientY - (r.top - dr.top);
+  e.preventDefault();
+}
+document.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const dr = document.getElementById('desktop').getBoundingClientRect();
+  dragging.style.left = Math.max(0, e.clientX - dr.left - dragOffX) + 'px';
+  dragging.style.top = Math.max(0, e.clientY - dr.top - dragOffY) + 'px';
+});
+document.addEventListener('mouseup', () => dragging = null);
+
+// Desktop click deselects icons
+document.getElementById('desktop').addEventListener('click', e => {
+  if (e.target === document.getElementById('desktop') || e.target === document.getElementById('icon-grid'))
+    document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
+});
+
+// ══════════════════════════════════════════
+// MINESWEEPER
+// ══════════════════════════════════════════
+let mineInit = false, mineBoard = [], mineRevealed = [], mineFlagged = [];
+let mineTimer = 0, mineInterval = null, mineGameOver = false, mineStarted = false;
+let ROWS = 9, COLS = 9, MINES = 10;
+
+function setDifficulty(d) {
+  if (d === 'easy')   { ROWS=9;  COLS=9;  MINES=10; }
+  if (d === 'medium') { ROWS=16; COLS=16; MINES=40; }
+  if (d === 'hard')   { ROWS=16; COLS=30; MINES=99; }
+  initMine();
+}
+
+function initMine() {
+  mineInit = true; mineGameOver = false; mineStarted = false;
+  clearInterval(mineInterval); mineTimer = 0;
+  document.getElementById('ms-time').textContent = '000';
+  document.getElementById('ms-mines').textContent = String(MINES).padStart(3, '0');
+  document.getElementById('ms-face').textContent = '🙂';
+  mineBoard = Array.from({length:ROWS}, () => Array(COLS).fill(0));
+  mineRevealed = Array.from({length:ROWS}, () => Array(COLS).fill(false));
+  mineFlagged = Array.from({length:ROWS}, () => Array(COLS).fill(false));
+  renderMine();
+}
+
+function placeMines(sr, sc) {
+  let placed = 0;
+  while (placed < MINES) {
+    const r = Math.floor(Math.random()*ROWS), c = Math.floor(Math.random()*COLS);
+    if (mineBoard[r][c] !== -1 && !(r===sr && c===sc)) { mineBoard[r][c] = -1; placed++; }
+  }
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
+    if (mineBoard[r][c]===-1) continue;
+    let cnt=0;
+    for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) {
+      const nr=r+dr, nc=c+dc;
+      if (nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&mineBoard[nr][nc]===-1) cnt++;
+    }
+    mineBoard[r][c]=cnt;
+  }
+}
+
+function renderMine() {
+  const board = document.getElementById('ms-board');
+  board.style.gridTemplateColumns = `repeat(${COLS}, 20px)`;
+  board.innerHTML = '';
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
+    const cell = document.createElement('div');
+    cell.className = 'ms-cell';
+    if (mineRevealed[r][c]) {
+      cell.classList.add('revealed');
+      const v = mineBoard[r][c];
+      if (v===-1) { cell.textContent='💣'; if(mineGameOver) cell.classList.add('mine-hit'); }
+      else if (v>0) { cell.textContent=v; cell.classList.add('n'+v); }
+    } else if (mineFlagged[r][c]) {
+      cell.textContent='🚩';
+    }
+    cell.addEventListener('click', ()=>clickCell(r,c));
+    cell.addEventListener('contextmenu', e=>{e.preventDefault(); flagCell(r,c);});
+    board.appendChild(cell);
+  }
+}
+
+function clickCell(r,c) {
+  if (mineGameOver||mineRevealed[r][c]||mineFlagged[r][c]) return;
+  if (!mineStarted) {
+    mineStarted=true; placeMines(r,c);
+    mineInterval=setInterval(()=>{
+      mineTimer=Math.min(999,mineTimer+1);
+      document.getElementById('ms-time').textContent=String(mineTimer).padStart(3,'0');
+    },1000);
+  }
+  reveal(r,c); checkWin(); renderMine();
+}
+
+function reveal(r,c) {
+  if (r<0||r>=ROWS||c<0||c>=COLS||mineRevealed[r][c]||mineFlagged[r][c]) return;
+  mineRevealed[r][c]=true;
+  if (mineBoard[r][c]===-1) {
+    mineGameOver=true; clearInterval(mineInterval);
+    document.getElementById('ms-face').textContent='😵';
+    for (let rr=0;rr<ROWS;rr++) for (let cc=0;cc<COLS;cc++) if (mineBoard[rr][cc]===-1) mineRevealed[rr][cc]=true;
+  } else if (mineBoard[r][c]===0) {
+    for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) reveal(r+dr,c+dc);
+  }
+}
+
+function flagCell(r,c) {
+  if (mineGameOver||mineRevealed[r][c]) return;
+  mineFlagged[r][c]=!mineFlagged[r][c];
+  const cnt=MINES-mineFlagged.flat().filter(Boolean).length;
+  document.getElementById('ms-mines').textContent=String(Math.max(0,cnt)).padStart(3,'0');
+  renderMine();
+}
+
+function checkWin() {
+  let unrev=0;
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) if (!mineRevealed[r][c]&&mineBoard[r][c]!==-1) unrev++;
+  if (unrev===0&&!mineGameOver) {
+    mineGameOver=true; clearInterval(mineInterval);
+    document.getElementById('ms-face').textContent='😎';
+  }
+}
+
+// ══════════════════════════════════════════
+// MS PAINT
+// ══════════════════════════════════════════
+let paintInit=false, painting=false, paintTool='pencil', paintColor='#000000';
+let paintLastX=0, paintLastY=0;
+let shapeStartX=0, shapeStartY=0, shapeSnapshot=null;
+
+const PAINT_COLORS = [
+  '#000000','#808080','#800000','#808000','#008000','#008080','#000080','#800080',
+  '#c0c0c0','#ffffff','#ff0000','#ffff00','#00ff00','#00ffff','#0000ff','#ff00ff',
+  '#ffcc00','#ff6600','#ff99cc','#99ccff','#ccff99','#ffccaa','#996633','#336699'
+];
+
+function initPaint() {
+  paintInit=true;
+  document.getElementById('paint-color-preview').style.background=paintColor;
+  const pal=document.getElementById('paint-palette');
+  PAINT_COLORS.forEach(c=>{
+    const s=document.createElement('div');
+    s.className='color-swatch'; s.style.background=c;
+    s.onclick=()=>{ paintColor=c; document.getElementById('paint-color-preview').style.background=c; };
+    pal.appendChild(s);
+  });
+
+  const bs=document.getElementById('brush-size');
+  bs.addEventListener('input',()=>{ document.getElementById('paint-size').textContent='Size: '+bs.value; });
+
+  const canvas=document.getElementById('paint-canvas');
+  const ctx=canvas.getContext('2d');
+
+  canvas.addEventListener('mousedown', e=>{
+    painting=true;
+    const p=getPos(e);
+    paintLastX=p.x; paintLastY=p.y;
+    shapeStartX=p.x; shapeStartY=p.y;
+    if (paintTool==='fill') { floodFill(ctx,p.x,p.y,paintColor); painting=false; return; }
+    if (paintTool==='line'||paintTool==='rect'||paintTool==='circle')
+      shapeSnapshot=ctx.getImageData(0,0,canvas.width,canvas.height);
+    if (paintTool==='pencil'||paintTool==='brush'||paintTool==='eraser') {
+      ctx.beginPath(); ctx.moveTo(p.x,p.y);
+    }
+  });
+
+  canvas.addEventListener('mousemove', e=>{
+    const p=getPos(e);
+    document.getElementById('paint-coords').textContent=p.x+', '+p.y;
+    if (!painting) return;
+    const sz=parseInt(document.getElementById('brush-size').value)||2;
+    ctx.lineWidth=sz; ctx.lineCap='round'; ctx.lineJoin='round';
+    if (paintTool==='eraser') {
+      ctx.strokeStyle='#ffffff';
+      ctx.lineTo(p.x,p.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(p.x,p.y);
+    } else if (paintTool==='pencil'||paintTool==='brush') {
+      ctx.strokeStyle=paintColor;
+      ctx.lineTo(p.x,p.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(p.x,p.y);
+    } else if (paintTool==='line') {
+      ctx.putImageData(shapeSnapshot,0,0);
+      ctx.beginPath(); ctx.moveTo(shapeStartX,shapeStartY); ctx.lineTo(p.x,p.y);
+      ctx.strokeStyle=paintColor; ctx.stroke();
+    } else if (paintTool==='rect') {
+      ctx.putImageData(shapeSnapshot,0,0);
+      ctx.beginPath(); ctx.rect(shapeStartX,shapeStartY,p.x-shapeStartX,p.y-shapeStartY);
+      ctx.strokeStyle=paintColor; ctx.stroke();
+    } else if (paintTool==='circle') {
+      ctx.putImageData(shapeSnapshot,0,0);
+      const rx=Math.abs(p.x-shapeStartX)/2, ry=Math.abs(p.y-shapeStartY)/2;
+      const cx2=(shapeStartX+p.x)/2, cy2=(shapeStartY+p.y)/2;
+      ctx.beginPath(); ctx.ellipse(cx2,cy2,rx,ry,0,0,Math.PI*2);
+      ctx.strokeStyle=paintColor; ctx.stroke();
+    }
+    paintLastX=p.x; paintLastY=p.y;
+  });
+
+  canvas.addEventListener('mouseup', ()=>{ painting=false; shapeSnapshot=null; });
+  canvas.addEventListener('mouseleave', ()=>{ painting=false; });
+}
+
+function getPos(e) {
+  const r=document.getElementById('paint-canvas').getBoundingClientRect();
+  return {x:Math.floor(e.clientX-r.left), y:Math.floor(e.clientY-r.top)};
+}
+
+function setTool(t) {
+  paintTool=t;
+  document.querySelectorAll('.paint-tool').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tool-'+t).classList.add('active');
+  const names={pencil:'Pencil',brush:'Brush',eraser:'Eraser',fill:'Fill',line:'Line',rect:'Rectangle',circle:'Ellipse'};
+  document.getElementById('paint-status').textContent=names[t]||t;
+}
+
+function clearCanvas() {
+  if (!confirm('Clear canvas? This cannot be undone.')) return;
+  const c=document.getElementById('paint-canvas');
+  c.getContext('2d').clearRect(0,0,c.width,c.height);
+}
+
+function saveCanvas() {
+  const c=document.getElementById('paint-canvas');
+  const a=document.createElement('a'); a.download='untitled.png';
+  a.href=c.toDataURL(); a.click();
+}
+
+function floodFill(ctx,sx,sy,fc) {
+  const canvas=document.getElementById('paint-canvas');
+  const imgD=ctx.getImageData(0,0,canvas.width,canvas.height), d=imgD.data;
+  const i=(sy*canvas.width+sx)*4;
+  const tr=d[i],tg=d[i+1],tb=d[i+2],ta=d[i+3];
+  const fr=parseInt(fc.slice(1,3),16),fg=parseInt(fc.slice(3,5),16),fb=parseInt(fc.slice(5,7),16);
+  if (tr===fr&&tg===fg&&tb===fb) return;
+  const stack=[[sx,sy]];
+  while (stack.length) {
+    const [x,y]=stack.pop();
+    if (x<0||x>=canvas.width||y<0||y>=canvas.height) continue;
+    const j=(y*canvas.width+x)*4;
+    if (d[j]!==tr||d[j+1]!==tg||d[j+2]!==tb||d[j+3]!==ta) continue;
+    d[j]=fr; d[j+1]=fg; d[j+2]=fb; d[j+3]=255;
+    stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
+  }
+  ctx.putImageData(imgD,0,0);
+}
+
+// ══════════════════════════════════════════
+// KONAMI CODE EASTER EGG
+// ══════════════════════════════════════════
+const konami = [38,38,40,40,37,39,37,39,66,65];
+let konamiIdx = 0;
+document.addEventListener('keydown', e => {
+  if (e.keyCode === konami[konamiIdx]) {
+    konamiIdx++;
+    if (konamiIdx === konami.length) {
+      konamiIdx = 0;
+      showBSOD();
+    }
+  } else { konamiIdx = 0; }
+});
+
+function showBSOD() {
+  const existing = document.getElementById('win-bsod');
+  if (existing) { existing.remove(); }
+  const w = document.createElement('div');
+  w.className = 'window open'; w.id = 'win-bsod';
+  w.style.cssText = 'top:80px;left:80px;width:460px;z-index:' + (++zTop);
+  // ✏️ EDIT: Customize your BSOD easter egg message
+  w.innerHTML = `
+    <div class="title-bar" onmousedown="startDrag(event,'win-bsod')">
+      <div class="title-bar-text">⚠️ Fatal Error</div>
+      <div style="display:flex;gap:2px;"><button class="tb-btn" onclick="this.closest('.window').remove()">✕</button></div>
+    </div>
+    <div style="background:#000080;color:#fff;padding:28px;font-family:'Courier New',monospace;font-size:13px;line-height:1.8;">
+      <div style="text-align:center;background:#aaa;color:#000;padding:2px;margin-bottom:16px;font-weight:bold;">Windows</div>
+      <p>A fatal exception 0E has occurred at 0028:C00269E8 in VXD VMM(01) + 0001D5E8.</p>
+      <br>
+      <p>* Press any key to terminate the current application</p>
+      <p>* Press CTRL+ALT+DEL to restart your computer</p>
+      <br>
+      <p style="color:#ff0;">⚡ You have unlocked the secret:</p>
+      <p>I still remember every CSS bug I've ever shipped.</p>
+      <br>
+      <p style="color:#aaa;">Press any key to continue _</p>
+    </div>`;
+  document.getElementById('desktop').appendChild(w);
+}
+</script>
+</body>
+</html>
